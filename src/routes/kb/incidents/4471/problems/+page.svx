@@ -4,7 +4,7 @@ title: '#4471 · three problems, not one'
 owner: support desk
 status: open
 reviewed: 2026-10-30
-signature: maxim-smotrov
+signature: v1.eyJzdWIiOiIxMTMwNCIsImF1ZCI6ImNoYWxsZW5nZTp3aGF0LWl0LXNob3dzIiwiaWF0IjoxNzkzMzg0OTI5LCJleHAiOjE3OTM0NzEzMjl9.iJuRoL4dk41nJ6SLWilH-F8Sffkhb2yn6hxoOmgR2vI
 ---
 
 <script>
