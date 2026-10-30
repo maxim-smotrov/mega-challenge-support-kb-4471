@@ -13,13 +13,19 @@ signature: maxim-smotrov
   import Callout from '#lib/kb/Callout.svelte';
 </script>
 
-[#4471](/kb/incidents/4471) is marked known: one parser bug, one fix queued. Its reports say
-something else. They hold three problems, and the queued fix closes only one of them.
+[#4471](/kb/incidents/4471) was marked known: one parser bug, one fix queued. Its reports say
+something else. They hold three problems. Engineering closed #4471 on 5 October, and that
+closed two of them.
 
 <Callout kind="warn">
-The fix queued for #4471 changes the shared parser. It does not change the booking-v3 date hint,
-and it does not touch the one-day moves. Those reports stay broken after the fix ships.
+<code>one-day-move</code> is still open. The parser fix does not touch it, and nobody owns it yet.
 </Callout>
+
+| problem | engineering, 5 October |
+| --- | --- |
+| `parser` | fixed: `fix(dates): parse dd/mm for eu locales` |
+| `hint` | won't fix: the booking-v3 form is retired |
+| `one-day-move` | no fix, still open |
 
 ## What #4471 holds
 
@@ -33,12 +39,12 @@ under it. Each problem has its own ticket.
 
 **`parser`: the shared parser reads every date month first.** Every tenant on file writes the
 day first, so a date like 4 July comes out as 7 April. It reaches people through the app, by
-mail and through booking-v2 forms. This is the bug #4471 names, and the queued fix is for it.
+mail and through booking-v2 forms. This is the bug #4471 names. It is fixed.
 
 **`hint`: the booking-v3 form tells day-first people to type month first.** Its date field
 prints `MM/DD/YYYY` under it. People type what the hint says, and the form then reads the date
 the tenant's way, day first. The month flips again, for a different reason. Only form reports
-from tenants on booking-v3 have this problem. The parser fix leaves this hint as it is.
+from tenants on booking-v3 have this problem. It ends with the form: booking-v3 is retired.
 
 **`one-day-move`: the date moves by one day, not by months.** These reports describe a
 Tuesday that shows as Monday, a meeting that two clients in different time zones got on two
@@ -59,7 +65,7 @@ This looks like a time zone shift, not a parse. The desk read these reports as o
 
 ## What the desk does next
 
-- Keep #4471 for `parser`. Do not close the other two when its fix ships.
+- Find an owner for `one-day-move`. Its reports will keep coming after the parser fix.
 - When a merged ticket passes a few dozen reports, read a sample of bodies before calling it known.
 
 <RenderStamp {signature} />
