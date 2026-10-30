@@ -2,47 +2,58 @@
   import reports from '#lib/data/reports-4471.json';
   import notes from '#lib/data/desk-notes.json';
   import tickets from '#lib/data/tickets-4471.json';
-  import { groupByProblem } from '#lib/kb/problems';
+  import { groupByCause, readAs, uniqueById, type Report } from '#lib/kb/causes';
   import { tenantOf } from '#lib/kb/locales';
-  import type { Report } from '#lib/kb/causes';
 
   let { ticket }: { ticket: number } = $props();
 
-  const groups = $derived(groupByProblem(reports as Report[], ticket, tenantOf, notes.oneDayMove));
-  const total = $derived(groups.reduce((n, g) => n + g.reports.length, 0));
-  const issue = (problem: string) => (tickets.issues as Record<string, number>)[problem];
-  const list = (counts: Record<string, number>) =>
-    Object.entries(counts)
+  // Counted the desk's way, as CauseTable does: by cause, with reports the desk read differently
+  // footnoted under the cause they are filed under.
+  const merged = $derived(uniqueById(reports as Report[]).filter((r) => r.mergedInto === ticket));
+  const groups = $derived(groupByCause(merged, tenantOf));
+  const issues = tickets.issues as Record<string, number>;
+  const tags = (g: { taggedAs: Record<string, number> }) =>
+    Object.entries(g.taggedAs)
       .sort((a, b) => b[1] - a[1])
-      .map(([k, n]) => `${k} ×${n}`)
+      .map(([tag, n]) => `${tag} ×${n}`)
       .join(' · ');
 </script>
 
+{#snippet issueLink(problem: string)}
+  {#if issues[problem]}
+    <a href="https://github.com/{tickets.repo}/issues/{issues[problem]}">#{issues[problem]}</a>
+  {:else}
+    <span class="none">none</span>
+  {/if}
+{/snippet}
+
 <p class="sum">
-  <strong>{total}</strong> reports in #{ticket} · <strong>{groups.length}</strong> problems
+  <strong>{merged.length}</strong> reports in #{ticket} · <strong>{groups.length + 1}</strong> problems
 </p>
 
 <table>
   <thead>
-    <tr><th>problem</th><th>reports</th><th>tenants</th><th>came in by</th><th>tagged as</th><th>seen</th><th>ticket</th></tr>
+    <tr><th>problem</th><th>reports</th><th>tagged as</th><th>tenants</th><th>seen</th><th>ticket</th></tr>
   </thead>
   <tbody>
-    {#each groups as g (g.problem)}
+    {#each groups as g (g.cause)}
+      {@const moved = readAs(g, notes.oneDayMove)}
       <tr>
-        <td><code>{g.problem}</code></td>
+        <td><code>{g.cause}</code></td>
         <td>{g.reports.length}</td>
-        <td>{g.tenants.length}</td>
-        <td class="muted">{list(g.channels)}</td>
-        <td class="muted">{list(g.taggedAs)}</td>
+        <td class="muted">{tags(g)}</td>
+        <td>{g.tenants}</td>
         <td>{g.firstSeen} → {g.lastSeen}</td>
-        <td>
-          {#if issue(g.problem)}
-            <a href="https://github.com/{tickets.repo}/issues/{issue(g.problem)}">#{issue(g.problem)}</a>
-          {:else}
-            <span class="none">none</span>
-          {/if}
-        </td>
+        <td>{@render issueLink(g.cause)}</td>
       </tr>
+      {#if moved}
+        <tr class="sub">
+          <td><code>one-day-move</code></td>
+          <td>{moved}</td>
+          <td class="muted" colspan="3">read as a one-day move; counted under <code>{g.cause}</code>, where they are filed</td>
+          <td>{@render issueLink('one-day-move')}</td>
+        </tr>
+      {/if}
     {/each}
   </tbody>
 </table>
@@ -50,5 +61,6 @@
 <style>
   .sum { font-size: 1.1rem; }
   .muted { color: var(--muted); font-size: 0.85em; }
+  .sub td:first-child { padding-left: 1.5rem; }
   .none { color: var(--warn); font-weight: 600; }
 </style>

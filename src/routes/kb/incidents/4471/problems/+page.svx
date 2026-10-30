@@ -25,8 +25,9 @@ and it does not touch the one-day moves. Those reports stay broken after the fix
 
 <ProblemTable ticket={4471} />
 
-Each report is counted once: the export repeats some reports, and the table keeps one per id.
-Each problem has its own ticket.
+The table counts the desk's way: one row per report id, since the export repeats some reports.
+The one-day moves stay counted under `parser`, where they are filed, and get their own row
+under it. Each problem has its own ticket.
 
 ## The three problems
 
@@ -43,7 +44,7 @@ from tenants on booking-v3 have this problem. The parser fix leaves this hint as
 Tuesday that shows as Monday, a meeting that two clients in different time zones got on two
 different days, and an invite that arrived before its booking. Day and month are not swapped.
 This looks like a time zone shift, not a parse. The desk read these reports as one-day moves
-(desk notes), but they were filed under `parser` by tenant and so they vanished into the count.
+(desk notes), but they were filed under `parser` by tenant, so they are hidden inside its count.
 
 ## Why one ticket hid three
 
