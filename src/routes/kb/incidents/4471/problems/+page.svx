@@ -1,0 +1,64 @@
+---
+layout: runbook
+title: '#4471 · three problems, not one'
+owner: support desk
+status: open
+reviewed: 2026-10-30
+signature: maxim-smotrov
+---
+
+<script>
+  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+</script>
+
+[#4471](/kb/incidents/4471) is marked known: one parser bug, one fix queued. Its reports say
+something else. They hold three problems, and the queued fix closes only one of them.
+
+<Callout kind="warn">
+The fix queued for #4471 changes the shared parser. It does not change the booking-v3 date hint,
+and it does not touch the one-day moves. Those reports stay broken after the fix ships.
+</Callout>
+
+## What #4471 holds
+
+<ProblemTable ticket={4471} />
+
+Each report is counted once: the export repeats some reports, and the table keeps one per id.
+Each problem has its own ticket.
+
+## The three problems
+
+**`parser`: the shared parser reads every date month first.** Every tenant on file writes the
+day first, so a date like 4 July comes out as 7 April. It reaches people through the app, by
+mail and through booking-v2 forms. This is the bug #4471 names, and the queued fix is for it.
+
+**`hint`: the booking-v3 form tells day-first people to type month first.** Its date field
+prints `MM/DD/YYYY` under it. People type what the hint says, and the form then reads the date
+the tenant's way, day first. The month flips again, for a different reason. Only form reports
+from tenants on booking-v3 have this problem. The parser fix leaves this hint as it is.
+
+**`one-day-move`: the date moves by one day, not by months.** These reports describe a
+Tuesday that shows as Monday, a meeting that two clients in different time zones got on two
+different days, and an invite that arrived before its booking. Day and month are not swapped.
+This looks like a time zone shift, not a parse. The desk read these reports as one-day moves
+(desk notes), but they were filed under `parser` by tenant and so they vanished into the count.
+
+## Why one ticket hid three
+
+- The desk merges on subject line ([decision 0001](/kb/decisions/0001-dedupe-by-subject)) and
+  never reads a body. A subject like "Wrong date again" says nothing about the cause: all three
+  problems arrive under the same subjects, and the [triage explorer](/kb/triage/dedupe) shows
+  same-subject pairs with different causes.
+- Intake tags a report from the reporter's browser. The tag is a guess and often disagrees with
+  the cause: see the "tagged as" column.
+- The cause table on #4471 shows `hint` as "not this ticket — no ticket of its own". That was
+  true. It has one now.
+
+## What the desk does next
+
+- Keep #4471 for `parser`. Do not close the other two when its fix ships.
+- When a merged ticket passes a few dozen reports, read a sample of bodies before calling it known.
+
+<RenderStamp {signature} />
